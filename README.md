@@ -175,8 +175,7 @@ AstraSync SDK includes enterprise-grade cryptographic functionality for secure k
 - 🔑 **HD Wallet Derivation** - BIP44 path: `m/44'/60'/0'/0/0` (Ethereum-compatible)
 - ✍️ **secp256k1 Key Pairs** - Elliptic curve cryptography
 - 🔒 **Digital Signatures** - Sign and verify messages
-- ☁️ **Crypto Keys API** - Full CRUD operations for server-managed keys
-- 🛡️ **Secure Key Management** - Client-side and server-side options
+- 🛡️ **Secure Key Management** - Client-side key operations
 
 ### Quick Start: Crypto
 
@@ -246,45 +245,6 @@ const isValid = client.verifySignature(message, signatureHex, publicKeyHex);
 // Returns: boolean
 ```
 
-#### Server-Managed Keys (Crypto Keys API)
-
-```typescript
-// Create a key on the server
-const key = await client.createCryptoKey({
-  keyType: "secp256k1",
-  metadata: {
-    name: "My Signing Key",
-    description: "Used for transaction signing",
-  },
-});
-
-// List all keys
-const keys = await client.listCryptoKeys();
-
-// Get a specific key
-const key = await client.getCryptoKey(keyId);
-
-// Sign with a stored key
-const signature = await client.signWithStoredKey({
-  message: "Transaction data",
-  keyId: key.data.id,
-});
-
-// Verify with a stored key
-const result = await client.verifyWithStoredKey(message, signature, keyId);
-
-// Export public key
-const exported = await client.exportPublicKey(keyId, "hex");
-
-// Update key metadata
-await client.updateCryptoKey(keyId, {
-  metadata: { name: "Updated Name" },
-});
-
-// Delete a key
-await client.deleteCryptoKey(keyId);
-```
-
 #### Advanced Crypto Operations
 
 ```typescript
@@ -325,9 +285,9 @@ The SDK supports the following key types:
 1. **Never store private keys or mnemonics in plain text**
 2. **Never commit sensitive keys to version control**
 3. **Use environment variables for API keys**
-4. **Use server-managed keys for production applications**
-5. **Always use HTTPS in production**
-6. **Implement proper key rotation policies**
+4. **Always use HTTPS in production**
+5. **Implement proper key rotation policies**
+6. **Use hardware wallets for high-value operations**
 
 ```typescript
 // ✅ Good: Use environment variables

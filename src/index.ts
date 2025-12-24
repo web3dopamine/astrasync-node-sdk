@@ -1,23 +1,14 @@
-import { Agent, RegistrationResponse, AstraSyncOptions, AgentFormat, CreateCryptoKeyRequest, CryptoKeyResponse, CryptoKeysListResponse, SignatureRequest, SignatureResponse, WalletInfo } from './types';
+import { Agent, RegistrationResponse, AstraSyncOptions, AgentFormat, WalletInfo } from './types';
 import { AstraSyncAPI } from './utils/api';
-import { CryptoKeysAPI } from './utils/cryptoKeysApi';
 import { detectAgentFormat } from './utils/detector';
 import { calculateTrustScore } from './utils/trustScore';
 import { CryptoService } from './services/crypto';
 
 export class AstraSync {
   private api: AstraSyncAPI;
-  private cryptoKeysApi: CryptoKeysAPI;
 
   constructor(options: AstraSyncOptions) {
     this.api = new AstraSyncAPI(
-      options.developerEmail,
-      options.apiKey,
-      options.password,
-      options.apiUrl
-    );
-    
-    this.cryptoKeysApi = new CryptoKeysAPI(
       options.developerEmail,
       options.apiKey,
       options.password,
@@ -149,88 +140,8 @@ export class AstraSync {
   // Crypto Keys API Methods (Server-side)
   // ============================================
 
-  /**
-   * Create a new crypto key on the server
-   * @param request - Key creation request
-   * @returns Created crypto key
-   */
-  async createCryptoKey(request: CreateCryptoKeyRequest): Promise<CryptoKeyResponse> {
-    return this.cryptoKeysApi.createKey(request);
-  }
-
-  /**
-   * Get a crypto key by ID
-   * @param keyId - Key ID
-   * @returns Crypto key
-   */
-  async getCryptoKey(keyId: string): Promise<CryptoKeyResponse> {
-    return this.cryptoKeysApi.getKey(keyId);
-  }
-
-  /**
-   * List all crypto keys
-   * @param keyType - Optional filter by key type
-   * @returns List of crypto keys
-   */
-  async listCryptoKeys(keyType?: string): Promise<CryptoKeysListResponse> {
-    return this.cryptoKeysApi.listKeys(keyType);
-  }
-
-  /**
-   * Update a crypto key
-   * @param keyId - Key ID
-   * @param updates - Partial key updates
-   * @returns Updated crypto key
-   */
-  async updateCryptoKey(keyId: string, updates: any): Promise<CryptoKeyResponse> {
-    return this.cryptoKeysApi.updateKey(keyId, updates);
-  }
-
-  /**
-   * Delete a crypto key
-   * @param keyId - Key ID
-   * @returns Deletion result
-   */
-  async deleteCryptoKey(keyId: string): Promise<CryptoKeyResponse> {
-    return this.cryptoKeysApi.deleteKey(keyId);
-  }
-
-  /**
-   * Sign a message with a stored key (server-side)
-   * @param request - Signature request
-   * @returns Signature result
-   */
-  async signWithStoredKey(request: SignatureRequest): Promise<SignatureResponse> {
-    return this.cryptoKeysApi.signMessage(request);
-  }
-
-  /**
-   * Verify a signature (server-side)
-   * @param message - Original message
-   * @param signature - Signature to verify
-   * @param keyId - Key ID to verify against
-   * @returns Verification result
-   */
-  async verifyWithStoredKey(
-    message: string,
-    signature: string,
-    keyId: string
-  ): Promise<{ success: boolean; valid?: boolean; error?: string }> {
-    return this.cryptoKeysApi.verifySignature(message, signature, keyId);
-  }
-
-  /**
-   * Export public key
-   * @param keyId - Key ID
-   * @param format - Export format (pem, hex, base64)
-   * @returns Exported public key
-   */
-  async exportPublicKey(
-    keyId: string,
-    format: 'pem' | 'hex' | 'base64' = 'hex'
-  ): Promise<{ success: boolean; publicKey?: string; error?: string }> {
-    return this.cryptoKeysApi.exportPublicKey(keyId, format);
-  }
+  // Removed: Server-side API methods not needed for SDK-only functionality
+  // Keep only local cryptographic functions above
 }
 
 // Export everything

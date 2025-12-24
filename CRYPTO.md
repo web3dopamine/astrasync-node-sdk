@@ -11,7 +11,6 @@ AstraSync SDK provides enterprise-grade cryptographic functionality for secure k
 1. **Mnemonic Service** - BIP39 mnemonic phrase generation and validation
 2. **HD Wallet Service** - BIP44 hierarchical deterministic wallet derivation
 3. **Key Pair Service** - secp256k1 elliptic curve key pair operations
-4. **Crypto Keys API** - Server-side key management with CRUD operations
 
 ### Standards Compliance
 
@@ -152,96 +151,6 @@ const customPath = "m/44'/60'/1'/0/0"; // Account 1
 const customKey = CryptoService.HDWallet.derive(mnemonic, customPath);
 ```
 
-### 6. Server-Managed Keys
-
-Use the Crypto Keys API for server-side key management:
-
-```typescript
-// Create a key on the server
-const result = await client.createCryptoKey({
-  keyType: "secp256k1",
-  metadata: {
-    name: "Production Signing Key",
-    description: "Used for transaction signing in production",
-  },
-});
-
-console.log(result.data);
-// {
-//   id: "key-123",
-//   userId: "user-456",
-//   keyType: "secp256k1",
-//   publicKey: "hex-encoded-public-key",
-//   address: "0x...",
-//   createdAt: "2024-01-01T00:00:00.000Z",
-//   metadata: { ... }
-// }
-
-// List all keys
-const keys = await client.listCryptoKeys();
-console.log(`Total keys: ${keys.count}`);
-
-// Filter by key type
-const ethKeys = await client.listCryptoKeys("ethereum");
-
-// Get specific key
-const key = await client.getCryptoKey("key-123");
-
-// Update key metadata
-await client.updateCryptoKey("key-123", {
-  metadata: {
-    name: "Updated Name",
-    description: "Updated description",
-  },
-});
-
-// Delete key
-await client.deleteCryptoKey("key-123");
-```
-
-### 7. Server-Side Signing
-
-Sign messages using server-managed keys:
-
-```typescript
-// Sign with stored key
-const signature = await client.signWithStoredKey({
-  message: "Transaction data to sign",
-  keyId: "key-123",
-});
-
-if (signature.success) {
-  console.log(`Signature: ${signature.signature}`);
-  console.log(`Recovery: ${signature.recovery}`);
-}
-
-// Verify with stored key
-const verification = await client.verifyWithStoredKey(
-  "Transaction data to sign",
-  signature.signature!,
-  "key-123"
-);
-
-console.log(`Valid: ${verification.valid}`);
-```
-
-### 8. Public Key Export
-
-Export public keys in different formats:
-
-```typescript
-// Export as hex (default)
-const hexKey = await client.exportPublicKey("key-123", "hex");
-
-// Export as base64
-const base64Key = await client.exportPublicKey("key-123", "base64");
-
-// Export as PEM
-const pemKey = await client.exportPublicKey("key-123", "pem");
-
-console.log(hexKey.publicKey);
-```
-
 ## API Reference
 
 ### AstraSync Class Methods
@@ -268,9 +177,7 @@ console.log(hexKey.publicKey);
 - `listCryptoKeys(keyType?: string): Promise<CryptoKeysListResponse>` - List all keys
 - `updateCryptoKey(keyId: string, updates: any): Promise<CryptoKeyResponse>` - Update key
 - `deleteCryptoKey(keyId: string): Promise<CryptoKeyResponse>` - Delete key
-- `signWithStoredKey(request: SignatureRequest): Promise<SignatureResponse>` - Sign with server key
-- `verifyWithStoredKey(message: string, signature: string, keyId: string): Promise<...>` - Verify with server key
-- `exportPublicKey(keyId: string, format?: 'pem' | 'hex' | 'base64'): Promise<...>` - Export public key
+- `verifySignature(message: string, signatureHex: string, publicKeyHex: string): boolean` - Verify signature locally
 
 ### CryptoService Class
 
@@ -295,34 +202,6 @@ console.log(hexKey.publicKey);
 - `recoverPublicKey(message: string | Buffer, signature: Buffer, recovery: number): Buffer` - Recover public key
 
 ## Types
-
-### KeyType
-
-```typescript
-type KeyType = "mnemonic" | "hd_wallet" | "secp256k1" | "ethereum";
-```
-
-### CryptoKey
-
-```typescript
-interface CryptoKey {
-  id?: string;
-  userId?: string;
-  keyType: KeyType;
-  publicKey: string;
-  privateKeyEncrypted?: string;
-  address?: string;
-  derivationPath?: string;
-  mnemonic?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-  metadata?: {
-    name?: string;
-    description?: string;
-    [key: string]: any;
-  };
-}
-```
 
 ### WalletInfo
 
