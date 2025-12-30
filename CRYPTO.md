@@ -1,209 +1,86 @@
-# Cryptographic Features Documentation
+# Cryptographic Signatures
 
-## Overview
+AstraSync SDK provides enterprise-grade cryptographic functionality for key management, digital signatures, and blockchain integration.
 
-AstraSync SDK provides enterprise-grade cryptographic functionality for secure key management, digital signatures, and blockchain integration. The implementation follows industry standards including BIP39, BIP44, and uses the secp256k1 elliptic curve.
+## Features
 
-## Architecture
-
-### Components
-
-1. **Mnemonic Service** - BIP39 mnemonic phrase generation and validation
-2. **HD Wallet Service** - BIP44 hierarchical deterministic wallet derivation
-3. **Key Pair Service** - secp256k1 elliptic curve key pair operations
-
-### Standards Compliance
-
-- ✅ **BIP39** - Mnemonic code for generating deterministic keys
-- ✅ **BIP44** - Multi-account hierarchy for deterministic wallets
-- ✅ **secp256k1** - Elliptic curve used by Bitcoin and Ethereum
-- ✅ **Ethereum** - Compatible address generation
+- ✅ **BIP39 Mnemonics** - Generate 12/24-word recovery phrases
+- ✅ **BIP44 HD Wallets** - Ethereum-compatible multi-account derivation
+- ✅ **ECDSA Signing** - secp256k1 digital signatures with recovery
+- ✅ **Signature Verification** - Public key validation
+- ✅ **Key Management** - Generate and restore wallets
 
 ## Installation
-
-The SDK includes all necessary cryptographic dependencies:
 
 ```bash
 npm install @astrasyncai/sdk
 ```
 
-Dependencies installed:
-
-- `@scure/bip39` - Secure BIP39 implementation
-- `@scure/bip32` - Secure BIP32 HD wallet implementation
-- `secp256k1` - Native secp256k1 library
-- `crypto` - Node.js built-in crypto module
-
-## Usage
-
-### 1. Mnemonic Generation
-
-Generate BIP39 mnemonic phrases for wallet creation:
+## Quick Start
 
 ```typescript
-import { AstraSync } from "@astrasyncai/sdk";
+import { AstraSync } from '@astrasyncai/sdk';
 
-const client = new AstraSync({
-  developerEmail: "dev@example.com",
-  apiKey: "your-api-key",
+const sdk = new AstraSync({
+  developerEmail: 'dev@example.com',
+  apiKey: 'your-api-key'
 });
 
-// Generate 12-word mnemonic
-const mnemonic12 = client.generateMnemonic(12);
+// Generate wallet
+const wallet = sdk.generateWallet(12);
+console.log('Address:', wallet.address);
+console.log('Mnemonic:', wallet.mnemonic);
 
-// Generate 24-word mnemonic (more entropy)
-const mnemonic24 = client.generateMnemonic(24);
+// Sign a message
+const signature = sdk.signMessage('Hello World', privateKeyHex);
 
-// Validate mnemonic
-const isValid = client.validateMnemonic(mnemonic12);
-```
-
-**Security Note:** Store mnemonics securely. Never commit to version control or transmit over insecure channels.
-
-### 2. Wallet Generation
-
-Generate complete Ethereum-compatible wallets:
-
-```typescript
-// Generate new wallet
-const wallet = client.generateWallet(12);
-
-console.log(wallet);
-// {
-//   mnemonic: "word1 word2 word3 ...",
-//   seed: "hex-encoded-seed",
-//   address: "0x...",
-//   publicKey: "hex-encoded-public-key",
-//   derivationPath: "m/44'/60'/0'/0/0"
-// }
+// Verify signature
+const valid = sdk.verifySignature('Hello World', signature.signature, publicKeyHex);
 
 // Restore wallet from mnemonic
-const restored = client.restoreWallet(wallet.mnemonic);
-console.log(restored.address === wallet.address); // true
-```
-
-### 3. Key Pair Operations
-
-Generate and manage secp256k1 key pairs:
-
-```typescript
-import { CryptoService } from "@astrasyncai/sdk";
-
-// Generate raw key pair
-const keyPair = CryptoService.KeyPair.generate();
-console.log({
-  privateKey: keyPair.privateKey.toString("hex"),
-  publicKey: keyPair.publicKey.toString("hex"),
-  publicKeyUncompressed: keyPair.publicKeyUncompressed.toString("hex"),
-});
-
-// Generate key pair from HD wallet
-const hdkey = CryptoService.HDWallet.derive(mnemonic);
-const walletKeyPair = CryptoService.KeyPair.fromHDKey(hdkey);
-```
-
-### 4. Digital Signatures
-
-Sign and verify messages using ECDSA:
-
-```typescript
-// Sign a message (client-side)
-const message = "Transaction: Send 1 ETH to 0x...";
-const privateKeyHex = "your-private-key-hex";
-
-const signature = client.signMessage(message, privateKeyHex);
-console.log(signature);
-// {
-//   signature: "hex-encoded-signature",
-//   recovery: 0 or 1
-// }
-
-// Verify signature (client-side)
-const isValid = client.verifySignature(
-  message,
-  signature.signature,
-  publicKeyHex
-);
-
-console.log(isValid); // true or false
-```
-
-### 5. HD Wallet Derivation
-
-Derive multiple accounts from a single mnemonic:
-
-```typescript
-import { CryptoService } from "@astrasyncai/sdk";
-
-// Derive single account
-const hdkey = CryptoService.HDWallet.derive(mnemonic);
-const address = CryptoService.HDWallet.getEthereumAddress(hdkey);
-
-// Derive multiple accounts
-const accounts = CryptoService.HDWallet.deriveMultipleAccounts(mnemonic, 5);
-accounts.forEach((account, index) => {
-  const address = CryptoService.HDWallet.getEthereumAddress(account);
-  console.log(`Account ${index}: ${address}`);
-});
-
-// Custom derivation path
-const customPath = "m/44'/60'/1'/0/0"; // Account 1
-const customKey = CryptoService.HDWallet.derive(mnemonic, customPath);
+const restored = sdk.restoreWallet(wallet.mnemonic);
 ```
 
 ## API Reference
 
-### AstraSync Class Methods
+### AstraSync Methods
 
-#### Mnemonic Methods
+#### Mnemonics
+- `generateMnemonic(wordCount: 12 | 24): string` - Generate BIP39 phrase
+- `validateMnemonic(mnemonic: string): boolean` - Validate phrase
 
-- `generateMnemonic(wordCount: 12 | 24): string` - Generate BIP39 mnemonic
-- `validateMnemonic(mnemonic: string): boolean` - Validate mnemonic phrase
+#### Wallets
+- `generateWallet(wordCount: 12 | 24): WalletInfo` - Create new wallet
+- `restoreWallet(mnemonic: string): WalletInfo` - Restore from mnemonic
 
-#### Wallet Methods
+#### Signatures
+- `signMessage(message: string, privateKeyHex: string): { signature: string; recovery: number }` - Sign message
+- `verifySignature(message: string, signatureHex: string, publicKeyHex: string): boolean` - Verify signature
 
-- `generateWallet(wordCount: 12 | 24): WalletInfo` - Generate complete wallet
-- `restoreWallet(mnemonic: string): WalletInfo` - Restore wallet from mnemonic
+### CryptoService (Advanced)
 
-#### Local Crypto Methods
+```typescript
+import { CryptoService } from '@astrasyncai/sdk';
 
-- `signMessage(message: string, privateKeyHex: string): { signature: string; recovery: number }` - Sign message locally
-- `verifySignature(message: string, signatureHex: string, publicKeyHex: string): boolean` - Verify signature locally
+// Mnemonic operations
+CryptoService.Mnemonic.generate(12);
+CryptoService.Mnemonic.validate(mnemonic);
+CryptoService.Mnemonic.toSeed(mnemonic, passphrase?);
 
-#### Server Crypto Methods
+// HD Wallet
+CryptoService.HDWallet.derive(mnemonic, derivationPath?, accountIndex?);
+CryptoService.HDWallet.getEthereumAddress(hdkey);
+CryptoService.HDWallet.deriveMultipleAccounts(mnemonic, count);
 
-- `createCryptoKey(request: CreateCryptoKeyRequest): Promise<CryptoKeyResponse>` - Create server key
-- `getCryptoKey(keyId: string): Promise<CryptoKeyResponse>` - Get key by ID
-- `listCryptoKeys(keyType?: string): Promise<CryptoKeysListResponse>` - List all keys
-- `updateCryptoKey(keyId: string, updates: any): Promise<CryptoKeyResponse>` - Update key
-- `deleteCryptoKey(keyId: string): Promise<CryptoKeyResponse>` - Delete key
-- `verifySignature(message: string, signatureHex: string, publicKeyHex: string): boolean` - Verify signature locally
-
-### CryptoService Class
-
-#### MnemonicService
-
-- `generate(wordCount: 12 | 24): string` - Generate mnemonic
-- `validate(mnemonic: string): boolean` - Validate mnemonic
-- `toSeed(mnemonic: string, passphrase?: string): Uint8Array` - Convert to seed
-
-#### HDWalletService
-
-- `derive(mnemonic: string, derivationPath?: string, accountIndex?: number): HDKey` - Derive HD key
-- `getEthereumAddress(hdkey: HDKey): string` - Get Ethereum address
-- `deriveMultipleAccounts(mnemonic: string, count: number): HDKey[]` - Derive multiple accounts
-
-#### KeyPairService
-
-- `generate(): { privateKey, publicKey, publicKeyUncompressed }` - Generate key pair
-- `fromHDKey(hdkey: HDKey): { privateKey, publicKey, publicKeyUncompressed }` - Generate from HD key
-- `sign(message: string | Buffer, privateKey: Buffer): { signature, recovery }` - Sign message
-- `verify(message: string | Buffer, signature: Buffer, publicKey: Buffer): boolean` - Verify signature
-- `recoverPublicKey(message: string | Buffer, signature: Buffer, recovery: number): Buffer` - Recover public key
+// Key Pair
+CryptoService.KeyPair.generate();
+CryptoService.KeyPair.fromHDKey(hdkey);
+CryptoService.KeyPair.sign(message, privateKey);
+CryptoService.KeyPair.verify(message, signature, publicKey);
+CryptoService.KeyPair.recoverPublicKey(message, signature, recovery);
+```
 
 ## Types
-
-### WalletInfo
 
 ```typescript
 interface WalletInfo {
@@ -215,103 +92,92 @@ interface WalletInfo {
 }
 ```
 
-## Security Considerations
+## Standards
+
+- BIP39 - Mnemonic code for generating deterministic keys
+- BIP44 - Multi-account hierarchy for deterministic wallets
+- secp256k1 - Elliptic curve cryptography
+- ECDSA - Elliptic Curve Digital Signature Algorithm
+- Ethereum - Address generation with Keccak-256
+
+## Dependencies
+
+- `@scure/bip32` - HD wallet derivation
+- `@scure/bip39` - Mnemonic generation
+- `ethereum-cryptography` - Keccak-256 hashing
+- `secp256k1` - ECDSA signing
+
+## Security
+
+- **Client-side only** - No server dependency
+- **Standard libraries** - Industry-proven implementations
+- **Type-safe** - Full TypeScript support
+- **Key management** - Never expose private keys
 
 ### Best Practices
 
-1. **Never Hardcode Keys**
+```typescript
+// ✅ Good - Use environment variables
+const privateKey = process.env.PRIVATE_KEY;
 
-   ```typescript
-   // ❌ Bad
-   const privateKey = "0x123abc...";
+// ❌ Bad - Never hardcode keys
+const privateKey = '0x123abc...';
 
-   // ✅ Good
-   const privateKey = process.env.PRIVATE_KEY;
-   ```
+// ✅ Good - Validate before use
+if (sdk.validateMnemonic(mnemonic)) {
+  const wallet = sdk.restoreWallet(mnemonic);
+}
 
-2. **Use Environment Variables**
+// ✅ Good - Keep mnemonics secure
+// Store offline, encrypted, or in a hardware wallet
+```
 
-   ```bash
-   # .env
-   ASTRASYNC_EMAIL=dev@example.com
-   ASTRASYNC_API_KEY=sk-...
-   PRIVATE_KEY=0x...
-   ```
+## Use Cases
 
-3. **Secure Mnemonic Storage**
-
-   - Encrypt mnemonics at rest
-   - Use hardware security modules (HSM) for production
-   - Implement proper access controls
-
-4. **Key Rotation**
-
-   - Rotate keys periodically
-   - Use server-managed keys for easier rotation
-   - Maintain key version history
-
-5. **Audit Trails**
-   - Log all cryptographic operations
-   - Monitor for unusual activity
-   - Implement alerting for sensitive operations
-
-### Common Pitfalls
-
-❌ **Don't:**
-
-- Store private keys in databases unencrypted
-- Commit keys to version control
-- Share mnemonics via email/chat
-- Use weak entropy sources
-- Reuse keys across environments
-
-✅ **Do:**
-
-- Use hardware wallets for high-value operations
-- Implement multi-signature schemes
-- Use secure key derivation functions
-- Test recovery procedures regularly
-- Follow principle of least privilege
+1. **Wallet Management** - Generate and restore crypto wallets
+2. **Digital Signatures** - Sign transactions and messages
+3. **Multi-Account Derivation** - Multiple accounts from one seed
+4. **Blockchain Integration** - Ethereum address generation and signing
 
 ## Examples
 
-See `examples/crypto-example.ts` for a complete working example.
+### Generate Multiple Accounts
 
-Run the example:
+```typescript
+const mnemonic = sdk.generateMnemonic(12);
+const accounts = CryptoService.HDWallet.deriveMultipleAccounts(mnemonic, 5);
 
-```bash
-npm run example:crypto
+accounts.forEach((account, i) => {
+  const address = CryptoService.HDWallet.getEthereumAddress(account);
+  console.log(`Account ${i}: ${address}`);
+});
 ```
 
-## Troubleshooting
+### Sign and Verify
 
-### Issue: "Invalid mnemonic phrase"
+```typescript
+const wallet = sdk.generateWallet(12);
+const message = 'Transaction data';
 
-**Solution:** Ensure the mnemonic has the correct number of words (12 or 24) and uses valid BIP39 words.
+// Sign
+const sig = sdk.signMessage(message, privateKeyHex);
 
-### Issue: "Authentication failed"
+// Verify
+const isValid = sdk.verifySignature(message, sig.signature, wallet.publicKey);
+console.log('Valid:', isValid);
+```
 
-**Solution:** Verify your API key or password is correct and not expired.
+### Wallet Recovery
 
-### Issue: "Key not found"
+```typescript
+// Save this securely
+const mnemonic = wallet.mnemonic;
 
-**Solution:** Ensure the key ID exists and belongs to your account.
+// Later, recover wallet
+const recovered = sdk.restoreWallet(mnemonic);
+console.log('Same address:', recovered.address === wallet.address); // true
+```
 
-### Issue: Type errors with Buffer/Uint8Array
+## License
 
-**Solution:** The SDK handles these conversions internally. If you encounter issues, ensure you're using Node.js >= 16.
-
-## Additional Resources
-
-- [BIP39 Specification](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki)
-- [BIP44 Specification](https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki)
-- [secp256k1 Curve](https://en.bitcoin.it/wiki/Secp256k1)
-- [Ethereum Key Derivation](https://ethereum.org/en/developers/docs/accounts/)
-
-## Support
-
-For issues or questions:
-
-- 📧 Email: support@astrasync.ai
-- 🐛 GitHub: [Issues](https://github.com/AstraSyncAI/astrasync-node-sdk/issues)
-- 📖 Docs: [astrasync.ai/docs](https://astrasync.ai/docs)
+MIT
